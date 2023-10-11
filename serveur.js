@@ -28,51 +28,175 @@ const create = async () => {
       console.error("Error creating users:", error);
   }
 };
-
- // Middleware to parse JSON data
-app.use(express.json());
-
-app.get('/users', async (req, res) => {
+//TROUVER TOUTES LES PERSONNES PORTANT LE NOM SPÉCIFIÉ
+const findPeopleByName1=async()=>{
   try {
-    const users = await User.find();
-    res.send({msg:users});
-  } catch (error) {
-   console.log(error);
-  }
-});
-app.post('/users', async (req, res) => {
+    // Use Model.find() to find all people with the specified name
+    const users = await User.find({ name:"John" });
 
- try {
-    const newUser = new User(req.body);
-    await newUser.save();
-    res.send(newUser);
+    console.log(users);
   } catch (error) {
-console.log(error);
-  }
-});
-app.put('/users/:id', async (req, res) => {
- try {
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, {name:req.body.name} );
-    res.send(updatedUser);
-  } 
-  catch (error) {
- console.log(error);
-  }
-});
-app.delete('/users/:id', async (req, res) => {
-  const { id } = req.params;
+    console.error('Error searching for people:', error);
 
+  }
+}
+//TROUVER UN SEUL PERSONNE PORTANT LE NOM SPÉCIFIÉ
+const findPeopleByName=async()=>{
   try {
-    result=await User.findByIdAndRemove(id);
-    res.send({ message: result });
+    // Use Model.find() to find all people with the specified name
+    const users = await User.findOne({ name:"John" });
+
+    console.log(users);
   } catch (error) {
+    console.error('Error searching for people:', error);
+
+  }
+}
+//TROUVER UNE SEULE PERSONNE QUI A UN CERTAIN ALIMENT DANS SES FAVORIS
+async function findPersonByFavoriteFood() {
+  try {
+    // Use Model.findOne() to find a person with the specified favorite food
+    const person = await User.findOne({ favoriteFoods: "burritos" });
+
+   console.log(person);
+  } catch (error) {
+    console.error('Error searching for a person:', error);
+    return null; // Return null in case of an error
+  }
+}
+//TROUVER LA (SEULE !!) PERSONNE AYANT UN _ID DONNÉ
+async function findPersonById(personId) {
+  try {
+    // Use Model.findById() to find a person by _id
+    const person = await User.findById(personId);
+
+    console.log(person);
+  } catch (error) {
+    console.error('Error searching for a person by _id:', error);
+     
+  }
+}
+//RECHERCHEZ UNE PERSONNE PAR _ID AVEC LE PARAMÈTRE PERSON ID COMME CLÉ DE RECHERCHE. AJOUTER « HAMBURGER » À LA LISTE DES ALIMENTS PRÉFÉRÉS DE LA PERSONNE
+
+async function addFavoriteFoodToPerson(personId, favoriteFood) {
+  try {
+    const person = await User.findByIdAndUpdate(
+      personId,
+      { $push: { favoriteFoods: favoriteFood } },
+      { new: true }
+    );
+
  
-    console.log(error);
+    console.log('Favorite food "hamburger" added to the person:', person);
+  } catch (error) {
+    console.error('Error updating person:', error);
   }
-});
+}
+const personId = '651b552365e8001a9a36d448'; 
+const favoriteFood = 'hamburger';
+//RECHERCHEZ UNE PERSONNE PAR NOM ET DÉFINISSEZ SON ÂGE SUR 20 ANS.
+
+async function updatePersonAge(personName) {
+  try {
+    const updatedPerson = await User.findOneAndUpdate(
+      { name: personName },
+      { age: 20 },
+      { new: true } // This option ensures that the updated document is returned
+    );
+
+    
+
+    console.log('Updated person:', updatedPerson);
+  } catch (error) {
+    console.error('Error updating person:', error);
+  }
+}
+const personNameToUpdate = 'John';
+
+//SUPPRIMEZ UNE PERSONNE PAR SON _ID.
+async function deletePersonById(personId) {
+  try {
+    const deletedPerson = await User.findByIdAndRemove(personId);
+
+    console.log('Deleted person:', deletedPerson);
+  } catch (error) {
+    console.error('Error deleting person:', error);
+  }
+}
+const personIdToDelete = '651b552365e8001a9a36d448';
+
+
+//SUPPRIMER TOUTES LES PERSONNES DONT LE NOM EST « MARIE »
+async function deletePeopleByName(name) {
+  try {
+    const result = await User.deleteMany({ name: name });
+
+    console.log(`Deleted ${result.deletedCount} people named ${name}`);
+  } catch (error) {
+    console.error('Error deleting people:', error);
+  }
+}
+
+ //TROUVEZ DES GENS QUI AIMENT LES BURRITOS. TRIEZ-LES PAR NOM, LIMITEZ LES RÉSULTATS À DEUX DOCUMENTS ET MASQUEZ LEUR ÂGE.
+ 
+async function searchPeopleWhoLikeBurritos() {
+  try {
+    const data = await User.find({ favoriteFoods: 'burritos' })
+      .sort('name')
+      .limit(2)
+      .select('-age')
+      .exec((err, user2) => {
+        if (err) return handleError(err);
+        console.log(user2);
+      })
+
+    console.log('Result:', data);
+  } catch (err) {
+    console.error('Error:', err);
+  }
+}
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Call the create function to insert the users into the database
 //create();
- 
- 
+//findPeopleByName1()
+//findPeopleByName()
+//findPersonByFavoriteFood()
+//findPersonById("651b552365e8001a9a36d448")
+//addFavoriteFoodToPerson(personId, favoriteFood);
+//updatePersonAge(personNameToUpdate)
+//deletePersonById(personIdToDelete);
+//deletePeopleByName('Mary');
+searchPeopleWhoLikeBurritos();
  
 
 connectdb()
